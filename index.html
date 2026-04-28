@@ -185,6 +185,13 @@ a{color:var(--gold);text-decoration:none}
 .nav-sub-item.active::before{background:var(--gold)}
 .nav-sub-item svg{width:14px;height:14px;flex-shrink:0;opacity:.7}
 .nav-sub-item.active svg{opacity:1}
+/* txnav-group animation */
+#txnav-group{
+  overflow:visible;
+  transition:opacity .2s ease;
+}
+#txnav-group.open{ display:block!important; opacity:1; }
+#txnav-group:not(.open){ display:none!important; }
 .sidebar-bottom{margin-top:16px;padding-top:10px;border-top:1px solid var(--border)}
 
 .content-area{flex:1;overflow-y:auto;background:var(--bg);position:relative;display:flex;flex-direction:column;align-items:stretch}
@@ -1545,7 +1552,7 @@ a{color:var(--gold);text-decoration:none}
       </span>
     </div>
     <!-- TX sub-items (hidden until TX data loaded, expanded when Analytics active) -->
-    <div id="txnav-group" style="display:none;overflow:hidden;transition:max-height .3s ease">
+    <div id="txnav-group">
       <div class="nav-item nav-sub-item" id="snav-tx-overview" onclick="navigate('tx-overview')">
         <i data-lucide="layout-dashboard"></i>TX Overview
       </div>
@@ -5982,7 +5989,7 @@ function doLogout(){
   _txpCharts={};
   // Hide TX nav groups (sidebar + mobile)
   const txGroup=document.getElementById('txnav-group');
-  if(txGroup) txGroup.style.display='none';
+  if(txGroup) txGroup.classList.remove('open');
   const mTxGroup=document.getElementById('smenu-tx-group');
   if(mTxGroup) mTxGroup.style.display='none';
   // Reset Analytics chevron
@@ -6095,7 +6102,7 @@ function navigate(page){
   // TX sub-page route handlers
   if(isTxPage){
     const txGroup=document.getElementById('txnav-group');
-    if(txGroup) txGroup.style.display='';
+    if(txGroup) txGroup.classList.add('open');
     if(!_txDashLoaded){
       loadTxDashboard(false).then(()=>{
         _txpNavigate(page);
@@ -6135,18 +6142,18 @@ function bnavTap(el, page){
 /* ── Analytics: navigate + expand sub-menu ── */
 function navigateAnalytics(){
   const txGroup = document.getElementById('txnav-group');
-  const isOpen  = txGroup && txGroup.style.display !== 'none';
+  const isOpen  = txGroup && txGroup.classList.contains('open');
   const onAnalyticsPage = curPage === 'analytics';
 
   if(onAnalyticsPage && isOpen){
     // อยู่หน้า Analytics อยู่แล้ว + sub-menu เปิดอยู่ → toggle ปิด
-    if(txGroup) txGroup.style.display = 'none';
+    if(txGroup) txGroup.classList.remove('open');
     const chevron = document.getElementById('analytics-chevron');
     if(chevron){ const ic=chevron.querySelector('svg,i'); if(ic) ic.style.transform='rotate(0deg)'; }
     return;
   }
   // เปิด sub-menu + navigate
-  if(txGroup) txGroup.style.display = '';
+  if(txGroup) txGroup.classList.add('open');
   navigate('analytics');
 }
 
