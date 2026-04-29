@@ -402,17 +402,19 @@ td{padding:11px 14px;vertical-align:middle;color:var(--text)}
 #adm-txnav-group.open{ display:block!important; }
 #adm-txnav-group:not(.open){ display:none!important; }
 
-/* TX sub-pages inside page-transactions */
-#page-transactions .page{ display:none; }
-#page-transactions .page.active, #page-transactions .page[style*="display:block"]{
-  display:block!important;
+/* TX wrapper container */
+#page-transactions{
+  padding:0 !important;
+  max-width:none !important;
+  background:transparent;
 }
-
-/* TX sub-pages default hidden — controlled by _txpNavigate */
+/* TX sub-pages: default hidden, show by _txpNavigate */
 #page-tx-overview, #page-tx-depwd, #page-tx-pnl, #page-tx-fees,
 #page-tx-funding, #page-tx-transactions, #page-tx-payment, #page-tx-teamcommission{
   display:none;
 }
+
+/* TX sub-pages: hidden by default — see #page-tx-* rule above */
 </style>
 </head>
 <body>
@@ -810,7 +812,10 @@ td{padding:11px 14px;vertical-align:middle;color:var(--text)}
     </div>
 
     <!-- ──── TRANSACTIONS PAGE ──── -->
-    <div class="page" id="page-tx-overview">
+        <!-- ──── TRANSACTIONS PAGE (wrapper) ──── -->
+    <div class="page" id="page-transactions" style="display:none;padding:0;max-width:none">
+      <!-- TX sub-pages — show/hide by _txpNavigate() -->
+<div class="page" id="page-tx-overview">
       <div class="page-header">
         <div class="page-title">📊 Binance TX — Overview</div>
         <div class="page-sub" id="txp-overview-sub">ข้อมูล Binance Transaction ของคุณ</div>
@@ -1137,6 +1142,8 @@ td{padding:11px 14px;vertical-align:middle;color:var(--text)}
         </div>
       </div>
     </div>
+    </div><!-- end page-transactions -->
+
 
 
     <!-- ──── E-BOOKS ──── -->
@@ -2325,12 +2332,17 @@ function navigateAdmAnalytics(){
   const ic      = chevron ? chevron.querySelector('i,svg') : null;
   const isOpen  = grp && grp.classList.contains('open');
   if(isOpen){
+    // collapse — ซ่อน TX และกลับ dashboard
     grp.classList.remove('open');
     if(ic) ic.style.transform = 'rotate(0deg)';
+    const txCont = document.getElementById('page-transactions');
+    if(txCont){ txCont.style.display='none'; txCont.classList.remove('active'); }
+    document.getElementById('nav-transactions')?.classList.remove('active');
   } else {
+    // expand + เปิด TX Overview
     grp.classList.add('open');
     if(ic) ic.style.transform = 'rotate(180deg)';
-    navigate('tx-overview'); // default เปิด TX Overview
+    if(typeof _txpNavigate === 'function') _txpNavigate('tx-overview');
   }
 }
 
@@ -2357,19 +2369,14 @@ function navigate(page){
     const mn = qs('mob-nav-'+p); if(mn) mn.classList.toggle('active', p===displayPage);
   });
 
-  // TX sub-pages: เปิด sub-menu และ route ไป _txpNavigate
+  // TX sub-pages: เปิด sub-menu + show container + route ใน _txpNavigate
   if(isTxPage){
+    // 1. เปิด sub-menu chevron
     const grp = document.getElementById('adm-txnav-group');
     if(grp) grp.classList.add('open');
     const chevron = document.getElementById('adm-analytics-chevron');
     const ic = chevron ? chevron.querySelector('i,svg') : null;
     if(ic) ic.style.transform = 'rotate(180deg)';
-    // show page-transactions container
-    const txPg = qs('page-transactions');
-    if(txPg){ txPg.classList.add('active'); txPg.style.display='block'; }
-    // route ไปยัง TX sub-page
-    if(typeof _txpNavigate === 'function') _txpNavigate(page);
-    else if(typeof initAdmTxPage === 'function') initAdmTxPage();
     return;
   }
   if(page==='dashboard')    loadDashboard();
@@ -6566,7 +6573,8 @@ function txpInitPaymentData(){
 function _txpNavigate(page){
   if(!_txpAllPayment.length) txpInitPaymentData();
   if(typeof setAdmTxActive==='function') setAdmTxActive(page);
-  // Show/hide TX sub-pages
+
+  // Show/hide TX sub-pages ภายใน page-transactions container
   ['tx-overview','tx-depwd','tx-pnl','tx-fees','tx-funding','tx-transactions','tx-payment','tx-teamcommission'].forEach(p=>{
     const el = document.getElementById('page-'+p);
     if(el) el.style.display = (p===page) ? 'block' : 'none';
