@@ -6026,6 +6026,27 @@ function _admRenderModalPaySummary(rows, sheetId){
 
 
 
+
+/* ─── AUTH shim สำหรับ TX JS ที่ copy มาจากฝั่งสมาชิก ───
+   ใน admin ไม่มี AUTH object — สร้าง proxy ให้ map ไปที่ _adminEmail/_adminName
+   และ isAdmin = true เสมอ (เพราะไฟล์นี้คือ admin portal)
+──────────────────────────────────────────────────────── */
+const AUTH = {
+  get user(){
+    return {
+      email:  _adminEmail || '',
+      name:   _adminName  || 'Admin',
+      role:   'admin',           // admin เสมอ → isAdmin=true ทุก branch
+    };
+  }
+};
+/* shim: _memberBnbId / _memberSheetId
+   ใน admin — TX JS ใช้ window._memberBnbId / window._memberSheetId
+   ซึ่ง set โดย showDone() ฝั่งสมาชิก
+   ใน admin ตัวแปรเหล่านี้ถูก set ใน openSubModal() แล้ว (window._memberBnbId)
+   แต่ถ้ายังไม่ได้ set ให้ default เป็น '' ป้องกัน undefined */
+if(typeof window._memberBnbId   === 'undefined') window._memberBnbId   = '';
+if(typeof window._memberSheetId === 'undefined') window._memberSheetId = '';
 /* ════════════════════════════════════════════════════════════════
    TRANSACTION DASHBOARD — Embedded in index_TccLP
    ดึงข้อมูลจาก Google Sheet CSV (เหมือน index_transactionv01.html)
